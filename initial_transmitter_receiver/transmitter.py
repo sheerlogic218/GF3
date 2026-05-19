@@ -56,22 +56,8 @@ def build_bitstream(message):
 # qpsk
 
 def qpsk_map(bits):
-    bit_pairs = bits.reshape(-1, 2)
-    symbols = []
-
-    for b0, b1 in bit_pairs:
-        if b0 == 0 and b1 == 0:
-            s = 1 + 1j
-        elif b0 == 0 and b1 == 1:
-            s = -1 + 1j
-        elif b0 == 1 and b1 == 1:
-            s = -1 - 1j
-        else:
-            s = 1 - 1j
-
-        symbols.append(s / np.sqrt(2))
-
-    return np.array(symbols)
+    symbols = [(-1)**int(b1) + (-1)**int(b0)*1j for b0, b1 in bits.reshape(-1, 2)]
+    return np.array(symbols)/np.sqrt(2)
 
 
 # ofdm
