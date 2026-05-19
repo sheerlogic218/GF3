@@ -125,7 +125,7 @@ tx_audio = 0.8 * tx_audio
 # Convert to int16 WAV
 tx_int16 = np.int16(tx_audio * 32767)
 
-wavfile.write("initial_transmitter_receiver/basic_ofdm_qpsk_tx.wav", fs, tx_int16)
+wavfile.write("basic_ofdm_qpsk_tx.wav", fs, tx_int16)
 
 print("Saved: basic_ofdm_qpsk_tx.wav")
 print("Total duration:", len(tx_audio) / fs, "seconds")
