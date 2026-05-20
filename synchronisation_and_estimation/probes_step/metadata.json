@@ -1,0 +1,14 @@
+{
+  "fs": 48000,
+  "sync_kind": "step",
+  "sync_start": 12000,
+  "sync_len": 21120,
+  "repeated_start": 38880,
+  "repeated_len": 17280,
+  "repeated_half_len": 8640,
+  "training_start": 61920,
+  "training_len": 60000,
+  "f_min": 500.0,
+  "f_max": 8000.0,
+  "gap_samples": 5760
+}

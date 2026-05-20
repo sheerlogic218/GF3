@@ -1,0 +1,11 @@
+{
+  "fs": 48000.0,
+  "matched_filter_sync_start_sample": 71591.0,
+  "matched_filter_sync_start_seconds": 1.4914791666666667,
+  "matched_filter_peak_score": 0.7752387323939898,
+  "matched_filter_peak_to_sidelobe_ratio": 5.243979974068493,
+  "repeated_half_peak_sample": 100004.0,
+  "repeated_half_peak_seconds": 2.0834166666666665,
+  "estimated_training_start_sample": 121511.0,
+  "estimated_training_start_seconds": 2.5314791666666667
+}

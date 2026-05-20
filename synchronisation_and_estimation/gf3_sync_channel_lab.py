@@ -2,27 +2,248 @@
 GF3 sync + channel-estimation lab
 =================================
 
-A small measurement harness for the GF3 audio modem project.
-It lets you:
-  1. Generate WAV probes for real laptop-speaker/laptop-microphone tests.
-  2. Analyse a recorded WAV and estimate the acoustic channel.
-  3. Run a fully simulated demo and create report-ready plots.
+Measurement harness for testing synchronisation and channel estimation in the
+GF3 audio modem project.
 
-Dependencies:
+The script can:
+  1. Generate known probe WAVs for real speaker-to-microphone tests.
+  2. Analyse a recorded WAV and estimate the effective acoustic channel.
+  3. Run a fully simulated demo using a synthetic echo/noise channel.
+  4. Optionally play and record live audio if `sounddevice` is installed.
+
+This is not a complete file-transmitting modem. It is a diagnostic tool for
+testing synchronisation methods and estimating the speaker-room-microphone
+channel before integrating these ideas into an OFDM/DMT modem.
+
+Dependencies
+------------
+Required:
     numpy scipy matplotlib
-Optional:
-    sounddevice   (only needed for live play/record experiments)
 
-Typical usage:
-    python gf3_sync_channel_lab.py make-probes --out probes
-    # play probes/measurement_tx.wav and record it as recordings/rx.wav
-    python gf3_sync_channel_lab.py analyse --probe-dir probes --rx recordings/rx.wav --out results_real
+Optional:
+    sounddevice
+        Only needed for the `live` play-record helper.
+
+Install dependencies with:
+    python -m pip install numpy scipy matplotlib
+
+Optional live audio support:
+    python -m pip install sounddevice
+
+
+Typical workflow
+----------------
+
+0) From the repository/folder containing this script, run commands as:
+
+    python gf3_sync_channel_lab.py <command> [options]
+
+
+1) Run a simulated demo
+-----------------------
+
+This creates a fake transmitted signal, passes it through a simulated acoustic
+channel with echoes/noise, then generates diagnostic plots.
+
     python gf3_sync_channel_lab.py demo --out results_demo
 
-Notes:
-  - Synchronisation and channel-estimation logic is implemented directly here.
-  - scipy is used for FFTs, WAV I/O and generic signal-processing utilities.
-  - This is a measurement scaffold, not a complete interoperable modem.
+Optional step-sync demo:
+
+    python gf3_sync_channel_lab.py demo --sync-kind step --out results_demo_step
+
+Typical outputs:
+    results_demo/
+        demo_tx.wav
+        demo_rx_simulated.wav
+        h_true.npy
+        metadata.json
+        results.json
+        00_recording_spectrogram.png
+        01_matched_filter_sync.png
+        02_repeated_half_metric.png
+        03_channel_impulse_response.png
+        04_channel_frequency_response_magnitude.png
+        05_channel_frequency_response_phase.png
+        06_ofdm_constellation_equalisation.png
+
+
+2) Generate real probe WAVs
+---------------------------
+
+This creates the signal to play through a speaker, plus the templates needed by
+the analyser.
+
+Chirp synchronisation probe:
+
+    python gf3_sync_channel_lab.py make-probes --out probes_chirp --sync-kind chirp --fs 48000
+
+Step-frequency synchronisation probe:
+
+    python gf3_sync_channel_lab.py make-probes --out probes_step --sync-kind step --fs 48000
+
+Each probe directory contains:
+    measurement_tx.wav      Main WAV to play through the transmitter speaker.
+    sync_template.wav       Known sync signal used for matched filtering.
+    repeated_template.wav   Repeated-half signal used for self-similarity timing.
+    training_template.wav   Known broadband signal used for channel estimation.
+    metadata.json           Timing/layout information for the generated probe.
+
+
+3) Record a real audio channel
+------------------------------
+
+Play:
+    probes_chirp/measurement_tx.wav
+
+Record the received audio at 48 kHz mono WAV, then save it somewhere like:
+    recordings/rx_chirp_baseline.wav
+
+The recording may contain silence before and after the transmission. Do not trim
+it manually; the script estimates the timing automatically.
+
+Recommended first tests:
+    recordings/rx_chirp_baseline.wav
+    recordings/rx_chirp_far.wav
+    recordings/rx_chirp_noisy.wav
+    recordings/rx_step_baseline.wav
+    recordings/rx_step_noisy.wav
+
+
+4) Analyse a real recording
+---------------------------
+
+Analyse a chirp-probe recording:
+
+    python gf3_sync_channel_lab.py analyse \
+        --probe-dir probes_chirp \
+        --rx recordings/rx_chirp_baseline.wav \
+        --out results_chirp_baseline
+
+Analyse a step-probe recording:
+
+    python gf3_sync_channel_lab.py analyse \
+        --probe-dir probes_step \
+        --rx recordings/rx_step_baseline.wav \
+        --out results_step_baseline
+
+Analyse a noisier/further-away take:
+
+    python gf3_sync_channel_lab.py analyse \
+        --probe-dir probes_chirp \
+        --rx recordings/rx_chirp_noisy.wav \
+        --out results_chirp_noisy
+
+Optional channel length override:
+
+    python gf3_sync_channel_lab.py analyse \
+        --probe-dir probes_chirp \
+        --rx recordings/rx_chirp_baseline.wav \
+        --out results_chirp_baseline_h4800 \
+        --h-len 4800
+
+
+5) Optional live play-record helper
+-----------------------------------
+
+This plays a generated probe and records from the default microphone.
+
+Requires:
+    python -m pip install sounddevice
+
+Example:
+
+    python gf3_sync_channel_lab.py live \
+        --tx probes_chirp/measurement_tx.wav \
+        --rx-out recordings/rx_live_chirp.wav
+
+Then analyse the live recording:
+
+    python gf3_sync_channel_lab.py analyse \
+        --probe-dir probes_chirp \
+        --rx recordings/rx_live_chirp.wav \
+        --out results_live_chirp
+
+
+What the generated plots mean
+-----------------------------
+
+00_recording_spectrogram.png
+    Time-frequency view of the recorded signal. Useful for checking clipping,
+    noise, missing playback, and whether the expected probe sections appear.
+
+01_matched_filter_sync.png
+    Matched-filter timing result using the known sync template. A clean result
+    should have one dominant peak.
+
+02_repeated_half_metric.png
+    Self-similarity timing metric for the repeated-half section. Useful for
+    testing Schmidl-Cox-style synchronisation ideas.
+
+03_channel_impulse_response.png
+    Estimated channel in the time domain. Early peaks correspond to direct-path
+    sound; later peaks/tails correspond to echoes and reverberation.
+
+04_channel_frequency_response_magnitude.png
+    Estimated channel magnitude response. Shows which frequencies/subcarriers
+    are strongly passed or attenuated.
+
+05_channel_frequency_response_phase.png
+    Estimated channel phase response. Relevant for OFDM/DMT equalisation.
+
+06_ofdm_constellation_equalisation.png
+    Demo-only plot showing how one-tap equalisation improves a simulated
+    OFDM/DMT constellation when the true simulated channel is available.
+
+
+Conceptual model
+----------------
+
+The channel-estimation part assumes:
+
+    y[n] ≈ x[n] * h[n] + noise
+
+where:
+    x[n] = known transmitted training signal
+    y[n] = aligned received training segment
+    h[n] = effective speaker-room-microphone impulse response
+
+In the frequency domain:
+
+    Y(f) ≈ H(f) X(f)
+
+The script estimates the channel using a regularised frequency-domain
+least-squares form:
+
+    H_hat(f) = Y(f) X*(f) / (|X(f)|^2 + regularisation)
+
+Then:
+
+    h_hat[n] = IFFT(H_hat(f))
+
+So:
+    H_hat(f) is the estimated frequency response.
+    h_hat[n] is the estimated impulse response.
+
+
+Repository notes
+----------------
+
+Suggested directories:
+    probes_chirp/
+    probes_step/
+    recordings/
+    results_chirp_baseline/
+    results_chirp_noisy/
+    results_step_baseline/
+    results_step_noisy/
+
+For a clean repository, consider committing:
+    - this script
+    - README / usage notes
+    - selected result plots
+    - small metadata/results JSON files
+
+Avoid committing many large WAV recordings unless needed.
 """
 
 from __future__ import annotations
