@@ -125,18 +125,59 @@ class MatchedAudioOFDM:
 
     # ---------------- waveform ----------------
 
-    def make_chirp_preamble(self, duration=1.0, f0=500, f1=8000):
+    def make_chirp_preamble(
+        self,
+        duration=1.0,
+        f0=500,
+        f1=8000,
+        kind="linear",
+        amplitude=0.6,
+        fade_duration=0.02,
+    ):
+        """
+        Make a chirp preamble.
+
+        Parameters:
+            duration: length of chirp in seconds
+            f0: starting frequency in Hz
+            f1: ending frequency in Hz
+            kind: "linear", "exponential", "quadratic", or "logarithmic"
+            amplitude: output amplitude
+            fade_duration: fade-in/out duration in seconds
+        """
+
         t = np.linspace(0, duration, int(self.fs * duration), endpoint=False)
-        k = (f1 - f0) / duration
-        phase = 2 * np.pi * (f0 * t + 0.5 * k * t**2)
+
+        if kind == "linear":
+            k = (f1 - f0) / duration
+            phase = 2 * np.pi * (f0 * t + 0.5 * k * t**2)
+
+        elif kind == "quadratic":
+            k = (f1 - f0) / duration**2
+            phase = 2 * np.pi * (f0 * t + (k / 3) * t**3)
+
+        elif kind in ["exponential", "logarithmic"]:
+            if f0 <= 0 or f1 <= 0:
+                raise ValueError("Exponential/log chirps need f0 and f1 > 0")
+
+            ratio = f1 / f0
+            phase = 2 * np.pi * f0 * duration / np.log(ratio) * (ratio ** (t / duration) - 1)
+
+        else:
+            raise ValueError(
+                "kind must be 'linear', 'quadratic', 'exponential', or 'logarithmic'"
+            )
+
         chirp = np.sin(phase)
 
-        fade_len = int(0.02 * self.fs)
+        fade_len = int(fade_duration * self.fs)
+        fade_len = min(fade_len, len(chirp) // 2)
+
         fade = np.ones_like(chirp)
         fade[:fade_len] = np.linspace(0, 1, fade_len)
         fade[-fade_len:] = np.linspace(1, 0, fade_len)
 
-        return 0.6 * chirp * fade
+        return amplitude * chirp * fade
 
     def make_ofdm_symbol(self, bin_values):
         X = np.zeros(self.N, dtype=complex)
