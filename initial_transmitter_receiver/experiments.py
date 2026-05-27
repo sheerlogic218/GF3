@@ -20,7 +20,7 @@ class MatchedAudioOFDM:
         repeats=1,
         f0=500,
         f1=8000,
-        kind='linear'
+        kind="linear",
     ):
         self.fs = fs
         self.N = N
@@ -44,7 +44,7 @@ class MatchedAudioOFDM:
             (freqs >= f_min) & (freqs <= f_max) & (np.arange(N) < N // 2)
         )[0]
 
-        self.pilot_bins = self.active_bins[::pilot_spacing]
+        self.pilot_bins = self.active_bins[:: pilot_spacing + 1]
         self.data_bins = np.array(
             [b for b in self.active_bins if b not in set(self.pilot_bins)]
         )
@@ -136,7 +136,7 @@ class MatchedAudioOFDM:
     # ---------------- waveform ----------------
 
     def make_chirp_preamble(
-      self,
+        self,
         duration=1.0,
         amplitude=0.6,
         fade_duration=0.02,
@@ -170,7 +170,14 @@ class MatchedAudioOFDM:
                 raise ValueError("Exponential/log chirps need f0 and f1 > 0")
 
             ratio = self.f1 / self.f0
-            phase = 2 * np.pi * self.f0 * duration / np.log(ratio) * (ratio ** (t / duration) - 1)
+            phase = (
+                2
+                * np.pi
+                * self.f0
+                * duration
+                / np.log(ratio)
+                * (ratio ** (t / duration) - 1)
+            )
 
         else:
             raise ValueError(
@@ -200,7 +207,7 @@ class MatchedAudioOFDM:
             X[-k] = np.conj(v)
 
         x = np.fft.ifft(X).real
-        x_cp = np.concatenate([x[-self.CP:], x])
+        x_cp = np.concatenate([x[-self.CP :], x])
         return x_cp
 
     def make_full_pilot_symbol(self):
@@ -332,7 +339,7 @@ class MatchedAudioOFDM:
         x = x[: n_symbols * self.symbol_len]
 
         blocks = x.reshape(n_symbols, self.symbol_len)
-        symbols_no_cp = blocks[:, self.CP:]
+        symbols_no_cp = blocks[:, self.CP :]
 
         return symbols_no_cp
 
@@ -495,10 +502,10 @@ class MatchedAudioOFDM:
 
 if __name__ == "__main__":
 
-    for i in (['linear','exponential']):
-        for j in range(500,2500,500):
-            for k in range(3000,12000,3000):
-                for l in range(2,5):
+    for i in ["linear", "exponential"]:
+        for j in range(500, 2500, 500):
+            for k in range(3000, 12000, 3000):
+                for l in range(2, 5):
                     print(f"working on {i}{j}{k}{l}")
                     modem = MatchedAudioOFDM(
                         fs=48000,
@@ -511,18 +518,13 @@ if __name__ == "__main__":
                         repeats=l,
                         f0=j,
                         f1=k,
-                        kind=i
-
+                        kind=i,
                     )
                     modem.make_tx_wav(
-                    "hello mate this is a full matched OFDM audio packet with pilots header and CRC",
-                    filename=f"tx_message{i}{j}{k}{l}.wav",
-    )
+                        "hello mate this is a full matched OFDM audio packet with pilots header and CRC",
+                        filename=f"tx_message{i}{j}{k}{l}.wav",
+                    )
 
-
-
-    
-    
     """
     
     modem.record_rx_wav(duration=10, filename="recorded_rx.wav")
@@ -530,5 +532,3 @@ if __name__ == "__main__":
 
     modem.decode_rx_wav("recorded_rx.wav")
     """
-    
-    

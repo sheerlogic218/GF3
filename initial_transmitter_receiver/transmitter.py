@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.io import wavfile
 
-
 # config
 
 FS = 48000
@@ -22,10 +21,11 @@ SILENCE_DURATION = 0.3
 
 OUTPUT_FILENAME = "basic_ofdm_qpsk_tx.wav"
 
-MESSAGE = b"this is a basic OFDM QPSK transmitter"
+MESSAGE: bytes = b"this is a basic OFDM QPSK transmitter"
 
 
 # utils
+
 
 def bytes_to_bits(data):
     return np.unpackbits(np.frombuffer(data, dtype=np.uint8))
@@ -55,20 +55,20 @@ def build_bitstream(message):
 
 # qpsk
 
+
 def qpsk_map(bits):
-    symbols = [(-1)**int(b1) + (-1)**int(b0)*1j for b0, b1 in bits.reshape(-1, 2)]
-    return np.array(symbols)/np.sqrt(2)
+    symbols = [(-1) ** int(b1) + (-1) ** int(b0) * 1j for b0, b1 in bits.reshape(-1, 2)]
+    return np.array(symbols) / np.sqrt(2)
 
 
 # ofdm
+
 
 def get_active_bins(fs):
     freqs = np.arange(N) * fs / N
 
     positive_bins = np.where(
-        (freqs >= F_MIN)
-        & (freqs <= F_MAX)
-        & (np.arange(N) < N // 2)
+        (freqs >= F_MIN) & (freqs <= F_MAX) & (np.arange(N) < N // 2)
     )[0]
 
     return positive_bins, freqs
@@ -79,10 +79,12 @@ def pad_symbols_to_grid(qpsk_symbols, num_data_bins):
 
     pad_len = num_ofdm_symbols * num_data_bins - len(qpsk_symbols)
 
-    padded_symbols = np.concatenate([
-        qpsk_symbols,
-        np.zeros(pad_len, dtype=complex),
-    ])
+    padded_symbols = np.concatenate(
+        [
+            qpsk_symbols,
+            np.zeros(pad_len, dtype=complex),
+        ]
+    )
 
     qpsk_grid = padded_symbols.reshape(num_ofdm_symbols, num_data_bins)
 
@@ -119,6 +121,7 @@ def build_ofdm_signal(qpsk_symbols, active_bins):
 
 # preamble
 
+
 def generate_chirp_preamble(fs):
     t = np.linspace(
         0,
@@ -134,6 +137,7 @@ def generate_chirp_preamble(fs):
 
 
 # audio output
+
 
 def normalise_audio(audio, peak=0.8):
     max_abs = np.max(np.abs(audio))
@@ -155,6 +159,7 @@ def save_wav(filename, fs, audio):
 
 
 # transmitter main
+
 
 def run_transmitter():
     print("Message:", MESSAGE)
@@ -179,12 +184,14 @@ def run_transmitter():
     preamble = generate_chirp_preamble(FS)
     silence = np.zeros(int(SILENCE_DURATION * FS))
 
-    tx_audio = np.concatenate([
-        silence,
-        preamble,
-        ofdm_signal,
-        silence,
-    ])
+    tx_audio = np.concatenate(
+        [
+            silence,
+            preamble,
+            ofdm_signal,
+            silence,
+        ]
+    )
 
     save_wav(OUTPUT_FILENAME, FS, tx_audio)
 
