@@ -15,22 +15,6 @@ This is not a complete file-transmitting modem. It is a diagnostic tool for
 testing synchronisation methods and estimating the speaker-room-microphone
 channel before integrating these ideas into an OFDM/DMT modem.
 
-Dependencies
-------------
-Required:
-    numpy scipy matplotlib
-
-Optional:
-    sounddevice
-        Only needed for the `live` play-record helper.
-
-Install dependencies with:
-    python -m pip install numpy scipy matplotlib
-
-Optional live audio support:
-    python -m pip install sounddevice
-
-
 Typical workflow
 ----------------
 

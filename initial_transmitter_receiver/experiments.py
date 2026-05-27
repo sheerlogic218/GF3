@@ -17,6 +17,10 @@ class MatchedAudioOFDM:
         pilot_spacing=8,
         header_repetition=5,
         volume=0.75,
+        repeats=1,
+        f0=500,
+        f1=8000,
+        kind='linear'
     ):
         self.fs = fs
         self.N = N
@@ -28,6 +32,12 @@ class MatchedAudioOFDM:
         self.pilot_spacing = pilot_spacing
         self.header_repetition = header_repetition
         self.volume = volume
+
+        self.chirp_repeats = repeats
+
+        self.kind = kind
+        self.f0 = f0
+        self.f1 = f1
 
         freqs = np.arange(N) * fs / N
         self.active_bins = np.where(
@@ -126,42 +136,41 @@ class MatchedAudioOFDM:
     # ---------------- waveform ----------------
 
     def make_chirp_preamble(
-        self,
+      self,
         duration=1.0,
-        f0=500,
-        f1=8000,
-        kind="linear",
         amplitude=0.6,
         fade_duration=0.02,
+        repeats=1,
     ):
         """
         Make a chirp preamble.
 
         Parameters:
-            duration: length of chirp in seconds
+            duration: length of a single chirp in seconds
             f0: starting frequency in Hz
             f1: ending frequency in Hz
             kind: "linear", "exponential", "quadratic", or "logarithmic"
             amplitude: output amplitude
-            fade_duration: fade-in/out duration in seconds
+            fade_duration: fade-in/out duration in seconds (applied per chirp)
+            repeats: number of times to repeat the chirp
         """
 
         t = np.linspace(0, duration, int(self.fs * duration), endpoint=False)
 
-        if kind == "linear":
-            k = (f1 - f0) / duration
-            phase = 2 * np.pi * (f0 * t + 0.5 * k * t**2)
+        if self.kind == "linear":
+            k = (self.f1 - self.f0) / duration
+            phase = 2 * np.pi * (self.f0 * t + 0.5 * k * t**2)
 
-        elif kind == "quadratic":
-            k = (f1 - f0) / duration**2
-            phase = 2 * np.pi * (f0 * t + (k / 3) * t**3)
+        elif self.kind == "quadratic":
+            k = (self.f1 - self.f0) / duration**2
+            phase = 2 * np.pi * (self.f0 * t + (k / 3) * t**3)
 
-        elif kind in ["exponential", "logarithmic"]:
-            if f0 <= 0 or f1 <= 0:
+        elif self.kind in ["exponential", "logarithmic"]:
+            if self.f0 <= 0 or self.f1 <= 0:
                 raise ValueError("Exponential/log chirps need f0 and f1 > 0")
 
-            ratio = f1 / f0
-            phase = 2 * np.pi * f0 * duration / np.log(ratio) * (ratio ** (t / duration) - 1)
+            ratio = self.f1 / self.f0
+            phase = 2 * np.pi * self.f0 * duration / np.log(ratio) * (ratio ** (t / duration) - 1)
 
         else:
             raise ValueError(
@@ -177,7 +186,11 @@ class MatchedAudioOFDM:
         fade[:fade_len] = np.linspace(0, 1, fade_len)
         fade[-fade_len:] = np.linspace(1, 0, fade_len)
 
-        return amplitude * chirp * fade
+        single_chirp = amplitude * chirp * fade
+
+        repeated_chirp = np.tile(single_chirp, repeats)
+
+        return repeated_chirp
 
     def make_ofdm_symbol(self, bin_values):
         X = np.zeros(self.N, dtype=complex)
@@ -481,21 +494,35 @@ class MatchedAudioOFDM:
 
 
 if __name__ == "__main__":
-    modem = MatchedAudioOFDM(
-        fs=48000,
-        N=1024,
-        CP=512,
-        f_min=800,
-        f_max=8000,
-        pilot_spacing=1,
-        header_repetition=5,
+
+    for i in (['linear','exponential']):
+        for j in range(500,2500,500):
+            for k in range(3000,12000,3000):
+                for l in range(2,5):
+                    print(f"working on {i}{j}{k}{l}")
+                    modem = MatchedAudioOFDM(
+                        fs=48000,
+                        N=1024,
+                        CP=1024,
+                        f_min=800,
+                        f_max=8000,
+                        pilot_spacing=8,
+                        header_repetition=5,
+                        repeats=l,
+                        f0=j,
+                        f1=k,
+                        kind=i
+
+                    )
+                    modem.make_tx_wav(
+                    "hello mate this is a full matched OFDM audio packet with pilots header and CRC",
+                    filename=f"tx_message{i}{j}{k}{l}.wav",
     )
 
+
+
     
-    modem.make_tx_wav(
-        "hello mate this is a full matched OFDM audio packet with pilots header and CRC",
-        filename="tx_message1.wav",
-    )
+    
     """
     
     modem.record_rx_wav(duration=10, filename="recorded_rx.wav")
