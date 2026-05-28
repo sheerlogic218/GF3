@@ -104,12 +104,33 @@ class OFDM:
         )
         return np.arange(start_bin, end_bin + 1).astype(int)
 
-    def to_OFDM_symbol(self):
-        X = np.zeros(self.subcarriers, dtype=complex)
+    def to_OFDM_symbol(self, bin_values):
+        X = np.zeros(self.subcarriers // 2 + 1, dtype=complex)
+
+        keys = np.fromiter(bin_values.keys(), dtype=int)
+        vals = np.fromiter(bin_values.values(), dtype=complex)
+        X[keys] = vals
+        x = np.fft.irfft(X)
+        return np.concatenate([x[-self.prefix_length :], x])
+
+    def data_to_symbols(self, data):
+        pass
+
+
 
 
 ofdm = OFDM()
 
+
+def plot_stuff(data):
+    # plot with matplotlib
+    import matplotlib.pyplot as plt
+
+    plt.plot(data)
+    plt.show()
+
+
+plot_stuff(ofdm.to_OFDM_symbol({k: 1 + 0j for k in ofdm.bins}))
 
 header = Header()
 modulator = Modulator()
