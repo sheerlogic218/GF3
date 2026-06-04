@@ -215,7 +215,8 @@ class AudioModem:
         data = data[: nsym * sym_len].reshape(nsym, sym_len)
         blocks = data[:, self.CP:]                       # drop cyclic prefix
         Y = np.fft.fft(blocks, axis=1)
-        EQ = Y / (H[None, :] + EPS)                      # one-tap equalisation
+        noise = 0.02 * np.mean(np.abs(H) ** 2)
+        EQ = Y * np.conj(H)[None, :] / (np.abs(H)[None, :] ** 2 + noise)
         syms = EQ[:, self.data_bins].reshape(-1)
         return self.qpsk_demap(syms)
 
@@ -246,11 +247,16 @@ class AudioModem:
         bits = np.unpackbits(np.frombuffer(payload, dtype=np.uint8))
         data_signal = self.ofdm_modulate(bits)
 
+        pre = self.preamble   / (np.max(np.abs(self.preamble))   + EPS) * 0.6
+        gol = self.golay_block / (np.max(np.abs(self.golay_block)) + EPS) * 0.6
+        data_signal = data_signal / (np.std(data_signal) + EPS) * 0.22
+        data_signal = np.clip(data_signal, -1.0, 1.0)
+
         tx = np.concatenate([
             np.zeros(self.SILENCE),
-            self.preamble,
+            pre,
             np.zeros(self.GUARD),
-            self.golay_block,
+            gol,
             np.zeros(self.GUARD),
             data_signal,
             np.zeros(self.SILENCE),

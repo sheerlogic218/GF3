@@ -1,0 +1,58 @@
+{
+  "sim_ber_snr12": {
+    "min_ber": 0.01529265072612586,
+    "ber_at_default": 0.015421006307760013
+  },
+  "sim_ber_snr6": {
+    "min_ber": 0.03376057405505843,
+    "ber_at_default": 0.03376668622561244
+  },
+  "sim_ber_snr3": {
+    "min_ber": 0.0565925871595521,
+    "ber_at_default": 0.056684269717862217
+  },
+  "sim_ber_snr0": {
+    "min_ber": 0.09713461444428144,
+    "ber_at_default": 0.09760525157694
+  },
+  "sim_ber_snr-3": {
+    "min_ber": 0.1562454158720845,
+    "ber_at_default": 0.15660909002004794
+  },
+  "sim_ber_snr-6": {
+    "min_ber": 0.2274552589115447,
+    "ber_at_default": 0.22804813945528335
+  },
+  "real": {
+    "phone": {
+      "delay_spread_samples": 285,
+      "delay_spread_ms": 5.94,
+      "snr_conditions": {
+        "None": {
+          "min_ber": 0.5820192166642219,
+          "ber_at_default": 0.5820925627108698
+        }
+      }
+    },
+    "laptop": {
+      "delay_spread_samples": 410,
+      "delay_spread_ms": 8.54,
+      "snr_conditions": {
+        "None": {
+          "min_ber": 0.3410041073786123,
+          "ber_at_default": 0.34107745342526036
+        }
+      }
+    },
+    "speaker": {
+      "delay_spread_samples": 924,
+      "delay_spread_ms": 19.25,
+      "snr_conditions": {
+        "None": {
+          "min_ber": 0.3259498313040927,
+          "ber_at_default": 0.32873698107671995
+        }
+      }
+    }
+  }
+}
