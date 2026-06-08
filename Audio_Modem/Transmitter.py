@@ -113,10 +113,11 @@ class OFDM:
         x = np.fft.irfft(X)
         return np.concatenate([x[-self.prefix_length :], x])
 
+    def full_pilot_symbol(self):
+        return self.to_OFDM_symbol({k: 1 + 0j for k in self.bins})
+
     def data_to_symbols(self, data):
         pass
-
-
 
 
 ofdm = OFDM()
