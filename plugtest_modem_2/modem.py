@@ -64,7 +64,7 @@ class ModemConfig:
     golay_regularisation: float = 1e-4
     equaliser_regularisation: float = 2e-3
     pilot_update_weight: float = 0.75
-    ldpc_max_iterations: int = 35
+    ldpc_max_iterations: int = 60
     ldpc_min_sum_scale: float = 0.80
 
     @property
@@ -226,12 +226,18 @@ class PacketCodec:
         if total is None:
             raise ValueError("not enough decoded bytes for the JOSS-F header")
         if len(data) < total:
-            raise ValueError(f"decoded {len(data)} bytes, but the header requests {total}")
+            print(f"decoded {len(data)} bytes, but the header requests {total}")
+            # raise ValueError(f"decoded {len(data)} bytes, but the header requests {total}")
+        print(struct.unpack(">H", data[:2]))
         header_length = struct.unpack(">H", data[:2])[0]
+        print(header_length)
         file_size = struct.unpack(">I", data[2:6])[0]
-        filename = data[6:header_length].decode("utf-8", errors="strict")
+        print(file_size)
+        file_name = data[6:header_length].decode("utf-8", errors="strict")
+        print(file_name)
+        # filename = data[6:header_length].decode("utf-8", errors="ignore")
         payload = data[header_length:total]
-        return DecodedPacket(filename, file_size, payload, header_length)
+        return DecodedPacket(file_name, file_size, payload, header_length)
 
 # -----------------------------------------------------------------------------
 # pilot_data.py

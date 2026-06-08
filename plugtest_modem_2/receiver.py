@@ -71,6 +71,7 @@ class Receiver:
                 target = current + n
                 candidates = peaks[np.abs(peaks - target) <= tolerance]
                 if not len(candidates):
+                    print("sdfghjkjhgfd")
                     break
                 chosen = int(candidates[np.argmax(metric[candidates])])
                 chain.append(chosen)
@@ -85,6 +86,7 @@ class Receiver:
                     best_chain = chain
 
         if best_chain is None:
+            print("shitting myself")
             # Conservative fallback for very poor recordings.
             template = self.chirp.train()
             coarse_metric = fftconvolve(received, template[::-1], mode="valid")
@@ -293,6 +295,8 @@ class Receiver:
     def decode_wav(self, wav_path: str | Path, output_directory: str | Path = ".") -> Path:
         received = read_wav(wav_path, self.config)
         packet, info = self.decode_signal(received)
+
+        # print(packet.payload)
         output_path = Path(output_directory) / safe_output_name(packet.filename)
         output_path.write_bytes(packet.payload)
         print(f"Decoded {wav_path}")
