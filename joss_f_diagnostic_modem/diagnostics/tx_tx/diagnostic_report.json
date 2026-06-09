@@ -1,0 +1,81 @@
+{
+  "created_utc": "2026-06-09T20:52:15.104953+00:00",
+  "events": [],
+  "source": "/Users/arjun/Documents/GitHub/GF3/joss_f_diagnostic_modem/payload.txt",
+  "stages": {
+    "coding": {
+      "coded_bits_per_group": 51240,
+      "data_rows": 90,
+      "data_rows_hash": "07f8bf7748c8be4e64c4c3e04dcf11c2562fd0c812da46508040407efd249742",
+      "information_bits_per_group": 25620,
+      "ldpc_groups": 3
+    },
+    "configuration": {
+      "carriers_per_symbol": 854,
+      "chirp_count": 10,
+      "chirp_hash": "99d8ee0a321c9ef3ab5bcb5302ba8036bea9c38857de3b86980c3c3fecd5d759",
+      "chirp_length": 4096,
+      "chirp_start_hz": 750.0,
+      "chirp_stop_hz": 18000.0,
+      "chirp_train_hash": "153702c319b2b79356cbe386568abf61ba094a6fc0b3157d318fd6ed2ea73308",
+      "cyclic_prefix": 2048,
+      "fft_length": 4096,
+      "first_data_bin": 171,
+      "golay_a_hash": "04b143c548ab7bac9172fa8ccd99d1471abbd33ccd9252d48d4f7cd3a50e3fa2",
+      "golay_b_hash": "165782a1c3ca8ef7be048b76a948fc797eccf37c39d67146cdcc55716d013cc6",
+      "golay_waveform_hash": "5761ffef0e8b2c0d2f6dde6bdf013510ac2ecd9f69d4ce0ca27cf756a8b17334",
+      "interleaver_hash": "991702b6468d03efb02df2e9401a5ea942977692a9b1a7e83a0f6cb42dd9bb7b",
+      "interleaver_stride": 15839,
+      "known_pilot_file": "/Users/arjun/Documents/GitHub/GF3/joss_f_diagnostic_modem/spliced_seed_qpsk.npy",
+      "known_pilot_file_sha256": "9b4ab87af8e883463803347e0eee32dce43c61cb797e2790c2bdca74892a5ae4",
+      "known_pilot_frequency_hash": "8a253dfab5f238f81544eba720f58c8901d153eddeb6df8eae07231a6473ce02",
+      "known_pilot_symbol_hash": "080147c6c072390c037a20cfbe60aa4e75ff9f5919c3d6cc9fd7025d36d028c1",
+      "known_pilot_waveform_hash": "7c5e5f69ea47134d9a0902b6dcfa59559b3c326b209a26dc4c91d53ea20f9759",
+      "last_data_bin": 1024,
+      "ofdm_symbol_length": 6144,
+      "pilot_interval": 20,
+      "preamble_length": 92160,
+      "sample_rate": 48000,
+      "zero_information_ldpc_codeword_hash": "47818de635a664ed6ad903332360b95627ed7c40f54a5bb8855c49a4c555111b"
+    },
+    "packet": {
+      "filename": "payload.txt",
+      "first_96_packet_bytes_ascii": ".....vpayload.txt# The Acoustics of Lecture Theatres..## Introduction..The acoustic design of le",
+      "first_96_packet_bytes_hex": "00 11 00 00 1d 76 70 61 79 6c 6f 61 64 2e 74 78 74 23 20 54 68 65 20 41 63 6f 75 73 74 69 63 73 20 6f 66 20 4c 65 63 74 75 72 65 20 54 68 65 61 74 72 65 73 0a 0a 23 23 20 49 6e 74 72 6f 64 75 63 74 69 6f 6e 0a 0a 54 68 65 20 61 63 6f 75 73 74 69 63 20 64 65 73 69 67 6e 20 6f 66 20 6c 65",
+      "framed_bytes": 7559,
+      "header_length": 17,
+      "packet_bits": 60472,
+      "packet_sha256": "5dd43a4d085a23c73fefc34c4fbe766a80caa9e3a2d3e48047ef3ef588cefeb1",
+      "payload_bytes": 7542,
+      "payload_length_field": 7542,
+      "payload_sha256": "ff9fbe331928ba18a3f2eface1845fcc47f94ac2f0b559a02a1731bb975932b8"
+    },
+    "waveform": {
+      "data_blocks": 90,
+      "duration_seconds": 14.152,
+      "final_peak": 0.8,
+      "final_rms": 0.07618233018698198,
+      "leading_silence": 4800,
+      "normalisation_scale": 0.45436394866438773,
+      "ofdm_peak": 1.7607030715170442,
+      "ofdm_rms": 0.1713989285548668,
+      "ofdm_samples": 577536,
+      "pilot_blocks": 4,
+      "pilot_positions": [
+        20,
+        40,
+        60,
+        80
+      ],
+      "pre_normalisation_peak": 1.7607030715170442,
+      "preamble_peak": 0.2,
+      "preamble_rms": 0.1520315564387587,
+      "preamble_samples": 92160,
+      "signal_hash_float64": "56965c8392e3d42ba3aeb325ec07b4d603267af78dede2f71a31691d7a293a92",
+      "total_samples": 679296,
+      "trailing_silence": 4800
+    }
+  },
+  "status": "success",
+  "warnings": []
+}

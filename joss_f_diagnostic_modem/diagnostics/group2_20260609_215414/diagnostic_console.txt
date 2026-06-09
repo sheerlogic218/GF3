@@ -1,0 +1,19 @@
+Diagnostic directory: /Users/arjun/Documents/GitHub/GF3/joss_f_diagnostic_modem/diagnostics/group2_20260609_215414
+Input: 330624 samples (6.89 s), peak=0.950, RMS=0.0842, clipped=0.0000%
+Chirps: chain=[24000, 28096, 32192, 36288, 40384, 44480, 48576, 52672, 56768, 60864], spacing mean/std=4096.000/0.000, SFO=-0.00 ppm
+Golay: |H| median=0.2499, dynamic range=0.0 dB, 99% impulse energy by sample 0
+OFDM boundary: nominal=92160, selected=92160 (+0), CP score=1.000; broad best offset=+0
+OFDM: 34 complete blocks; most pilot-like block=20 with coherence 1.000
+Equalisation: 33 data rows, median RMS EVM=0.000
+LDPC group 1: 4/35 blocks passed; first bytes=04 0f 00 00 0a d4 74 4d 73 74 32 2e 70 78 34 15
+Decode failed: ValueError: JOSS-F header could not be decoded. LDPC parity checks passed for 4/35 blocks; data-start adjustment was +0 samples. decoded header requests 3811 bytes, but this recording can contain at most 3202
+
+JOSS-F RECEIVE DIAGNOSTIC ASSESSMENT
+======================================
+
+Chirp synchronisation: chain found; spacing std=0.000 samples; SFO=-0.00 ppm.
+OFDM timing: selected CP score=1.000; broad-best distance=0 samples.
+Known pilots: expected-position median coherence=1.000; most pilot-like block=20.
+Equalised constellation: median RMS EVM=0.000.
+LDPC: 4/35 blocks passed (11.4%).
+FIRST LIKELY FAILURE: header field order/endianness/definition mismatch. Physical-layer and at least some LDPC decoding are working.

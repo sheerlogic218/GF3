@@ -1,0 +1,17 @@
+JOSS-F TRANSMITTER REFERENCE FINGERPRINTS
+==========================================
+chirp:             99d8ee0a321c9ef3ab5bcb5302ba8036bea9c38857de3b86980c3c3fecd5d759
+chirp train:       153702c319b2b79356cbe386568abf61ba094a6fc0b3157d318fd6ed2ea73308
+Golay A:           04b143c548ab7bac9172fa8ccd99d1471abbd33ccd9252d48d4f7cd3a50e3fa2
+Golay B:           165782a1c3ca8ef7be048b76a948fc797eccf37c39d67146cdcc55716d013cc6
+Golay waveform:    5761ffef0e8b2c0d2f6dde6bdf013510ac2ecd9f69d4ce0ca27cf756a8b17334
+pilot .npy file:   9b4ab87af8e883463803347e0eee32dce43c61cb797e2790c2bdca74892a5ae4
+pilot symbols:     080147c6c072390c037a20cfbe60aa4e75ff9f5919c3d6cc9fd7025d36d028c1
+pilot waveform:    7c5e5f69ea47134d9a0902b6dcfa59559b3c326b209a26dc4c91d53ea20f9759
+interleaver:       991702b6468d03efb02df2e9401a5ea942977692a9b1a7e83a0f6cb42dd9bb7b
+zero LDPC vector:  47818de635a664ed6ad903332360b95627ed7c40f54a5bb8855c49a4c555111b
+packet:             5dd43a4d085a23c73fefc34c4fbe766a80caa9e3a2d3e48047ef3ef588cefeb1
+final float signal: 56965c8392e3d42ba3aeb325ec07b4d603267af78dede2f71a31691d7a293a92
+
+Two groups using identical standard components should match all component
+fingerprints above the packet/final-signal lines.

@@ -1,0 +1,2 @@
+Header bytes: 00 11 00 00 1d 76 70 61 79 6c 6f 61 64 2e 74 78 74 23 20 54 68 65 20 41 63 6f 75 73 74 69 63 73
+Normalisation: pre-peak=1.760703, scale=0.45436395, final peak=0.800000

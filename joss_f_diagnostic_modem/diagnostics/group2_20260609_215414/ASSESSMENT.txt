@@ -1,0 +1,9 @@
+JOSS-F RECEIVE DIAGNOSTIC ASSESSMENT
+======================================
+
+Chirp synchronisation: chain found; spacing std=0.000 samples; SFO=-0.00 ppm.
+OFDM timing: selected CP score=1.000; broad-best distance=0 samples.
+Known pilots: expected-position median coherence=1.000; most pilot-like block=20.
+Equalised constellation: median RMS EVM=0.000.
+LDPC: 4/35 blocks passed (11.4%).
+FIRST LIKELY FAILURE: header field order/endianness/definition mismatch. Physical-layer and at least some LDPC decoding are working.

@@ -1,0 +1,22 @@
+Diagnostic directory: /Users/arjun/Documents/GitHub/GF3/joss_f_diagnostic_modem/diagnostics/tx_group7_20260609_221920
+Input: 866304 samples (18.05 s), peak=0.950, RMS=0.2117, clipped=0.0000%
+Chirps: chain=[2, 4098, 8194, 12290, 16386, 20482, 24578, 28674, 32770, 36866], spacing mean/std=4096.000/0.000, SFO=-0.00 ppm
+Golay: |H| median=0.08305, dynamic range=1.7 dB, 99% impulse energy by sample 1
+OFDM boundary: nominal=92160, selected=92158 (-2), CP score=1.000; broad best offset=+12288
+OFDM: 126 complete blocks; most pilot-like block=20 with coherence 0.998
+Equalisation: 120 data rows, median RMS EVM=0.002
+LDPC group 1: 0/35 blocks passed; first bytes=12 0f 00 80 2b d4 69 6c 6f 77 c5 6e 74 58 75 6a
+LDPC group 2: 0/35 blocks passed; first bytes=12 0f 00 80 2b d4 69 6c 6f 77 c5 6e 74 58 75 6a
+LDPC group 3: 0/35 blocks passed; first bytes=12 0f 00 80 2b d4 69 6c 6f 77 c5 6e 74 58 75 6a
+LDPC group 4: 0/35 blocks passed; first bytes=12 0f 00 80 2b d4 69 6c 6f 77 c5 6e 74 58 75 6a
+Decode failed: ValueError: JOSS-F header could not be decoded. LDPC parity checks passed for 0/140 blocks; data-start adjustment was -2 samples. decoded header requests 8404451 bytes, but this recording can contain at most 12810
+
+JOSS-F RECEIVE DIAGNOSTIC ASSESSMENT
+======================================
+
+Chirp synchronisation: chain found; spacing std=0.000 samples; SFO=-0.00 ppm.
+OFDM timing: selected CP score=1.000; broad-best distance=2 samples.
+Known pilots: expected-position median coherence=0.998; most pilot-like block=20.
+Equalised constellation: median RMS EVM=0.002.
+LDPC: 0/140 blocks passed (0.0%).
+FIRST LIKELY FAILURE: LDPC matrix/scaling, interleaver, QPSK bit mapping, or earlier symbol-quality failure.

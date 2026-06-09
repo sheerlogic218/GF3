@@ -1,0 +1,17 @@
+hypothesis,deinterleaver,ldpc_success,iterations,first_bytes_hex,first_bytes_ascii
+rotate_+0_deg,standard,False,60,12 0f 00 80 2b d4 69 6c 6f 77 c5 6e 74 58 75 6a,....+.ilow.ntXuj
+rotate_+0_deg,inverse_permutation,False,60,36 bf 46 91 46 1e 48 62 02 1e 41 4d 04 68 2f c3,6.F.F.Hb..AM.h/.
+rotate_+90_deg,standard,False,60,55 5a 55 55 43 bd cb e8 ca e8 ee 4a e5 c1 e9 43,UZUUC......J...C
+rotate_+90_deg,inverse_permutation,False,60,6c 2b dc 16 dc 7a d0 f0 55 18 51 5a 5d 41 60 9e,l+...z..U.QZ]A`.
+rotate_+180_deg,standard,False,60,ff f0 ff ff c6 2b 94 93 80 81 58 81 8b 87 8b f6,.....+....X.....
+rotate_+180_deg,inverse_permutation,False,60,c9 41 b9 6c b9 f0 b7 b5 ff e5 bf b2 fb d7 94 3c,.A.l...........<
+rotate_+270_deg,standard,False,60,ae a5 aa ea ad 42 74 36 75 11 70 b7 12 5e 32 3d,.....Bt6u.p..^2=
+rotate_+270_deg,inverse_permutation,False,60,93 d4 27 c9 23 a5 2e 2f ab c7 aa a4 a0 be bd 61,..'.#../.......a
+conjugate_rotate_+0_deg,standard,False,60,a2 a5 aa aa c1 6e c3 c6 c5 d8 cf a4 df 42 de ea,.....n.......B..
+conjugate_rotate_+0_deg,inverse_permutation,False,60,94 17 ec b1 8c b5 e2 e0 2a 14 fa e7 be 80 85 4d,........*......M
+conjugate_rotate_+90_deg,standard,False,60,80 0f 80 00 1f e8 b6 9c 9f b8 8a 1d b8 b4 b8 02,................
+conjugate_rotate_+90_deg,inverse_permutation,False,60,39 ee 99 73 a9 2f 04 85 00 6d 80 0e 08 56 17 cb,9..s./...m...V..
+conjugate_rotate_+180_deg,standard,False,60,dd 5a 55 55 76 81 2c 39 3a 63 b0 7b 21 2d 21 94,".ZUUv.,9:c.{!-!."
+conjugate_rotate_+180_deg,inverse_permutation,False,60,63 e9 03 4f 12 4a 1b 7f d5 cb 15 50 51 7f 7e 93,c..O.J.....PQ.~.
+conjugate_rotate_+270_deg,standard,False,60,d5 f0 ff fd e0 b7 2b e2 60 46 65 e2 47 43 47 5b,......+.`Fe.GCG[
+conjugate_rotate_+270_deg,inverse_permutation,False,60,c2 81 77 9c 76 d0 7b 7a bf 12 7e f1 f7 eb c8 74,..w.v.{z..~....t

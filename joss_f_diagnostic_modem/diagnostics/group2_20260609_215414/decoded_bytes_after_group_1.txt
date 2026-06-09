@@ -1,0 +1,3 @@
+bytes available: 3202
+hex:   04 0f 00 00 0a d4 74 4d 73 74 32 2e 70 78 34 15 61 65 20 5d 55 61 67 25 64 69 75 21 7f 66 20 48 61 6f 6c 65 74 0d 1a d5 a9 34 75 73 00 42 76 69 6d 75 6b 2e 24 52 73 25 25 26 21 22 d4 7a 69 4c e1 28 0d 8a 45 7e 70 64 7a 14 1b 69 72 2e 69 72 e4 6e a0 61 6c 66 30 47 7a 4b 4e 83 69 72 61 63
+ascii: ......tMst2.px4.ae ]Uag%diu!.f Haolet....4us.Bvimuk.$Rs%%&!".ziL.(..E~pdz..ir.ir.n.alf0GzKN.irac

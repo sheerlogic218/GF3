@@ -1,0 +1,20 @@
+Diagnostic directory: /Users/arjun/Documents/GitHub/GF3/joss_f_diagnostic_modem/diagnostics/tx_20260609_215237
+Input: 679296 samples (14.15 s), peak=0.800, RMS=0.0762, clipped=0.0000%
+Chirps: chain=[4800, 8896, 12992, 17088, 21184, 25280, 29376, 33472, 37568, 41664], spacing mean/std=4096.000/0.000, SFO=-0.00 ppm
+Golay: |H| median=0.4544, dynamic range=0.0 dB, 99% impulse energy by sample 0
+OFDM boundary: nominal=92160, selected=92160 (+0), CP score=1.000; broad best offset=+0
+OFDM: 94 complete blocks; most pilot-like block=20 with coherence 1.000
+Equalisation: 90 data rows, median RMS EVM=0.000
+LDPC group 1: 35/35 blocks passed; first bytes=00 11 00 00 1d 76 70 61 79 6c 6f 61 64 2e 74 78
+LDPC group 2: 35/35 blocks passed; first bytes=00 11 00 00 1d 76 70 61 79 6c 6f 61 64 2e 74 78
+LDPC group 3: 35/35 blocks passed; first bytes=00 11 00 00 1d 76 70 61 79 6c 6f 61 64 2e 74 78
+
+JOSS-F RECEIVE DIAGNOSTIC ASSESSMENT
+======================================
+
+Chirp synchronisation: chain found; spacing std=0.000 samples; SFO=-0.00 ppm.
+OFDM timing: selected CP score=1.000; broad-best distance=0 samples.
+Known pilots: expected-position median coherence=1.000; most pilot-like block=20.
+Equalised constellation: median RMS EVM=0.000.
+LDPC: 105/105 blocks passed (100.0%).
+No failure boundary detected: the packet decoded successfully.

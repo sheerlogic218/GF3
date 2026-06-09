@@ -1,0 +1,3 @@
+bytes available: 3202
+hex:   12 0f 00 80 2b d4 69 6c 6f 77 c5 6e 74 58 75 6a 20 4e 5f 46 45 20 50 4f 43 4b 28 49 4e 40 21 50 4f 4c 0c 0c 1a 49 20 4d 4f 1d 4d 20 57 4f 41 c3 20 51 4e 24 80 53 0e 4c 0c 0d 0a 49 00 4c 0f d6 45 26 52 4f 43 8b 60 43 5e 06 60 72 0f 4c 4c 4c 0a 49 24 4c 0e 26 4c 20 52 cf d3 4f 3a 41 c6 46
+ascii: ....+.ilow.ntXuj N_FE POCK(IN@!POL...I MO.M WOA. QN$.S.L...I.L..E&ROC.`C^.`r.LLL.I$L.&L R..O:A.F
