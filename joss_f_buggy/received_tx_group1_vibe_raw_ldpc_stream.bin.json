@@ -1,0 +1,13 @@
+{
+  "status": "header_unrecoverable",
+  "decoded_stream_bytes": 16012,
+  "first_64_bytes_hex": "20eec55dd3812449dfb7bbb6fc7ae4b22cd074a0513811e6754f674ef039a8038b2a5e595d120605aed8d081ca2fd25660d27ed21d5540f4850fbd0c79b5054d",
+  "sync_sample": 0,
+  "sample_rate_offset_ppm": -0.0022269663890739366,
+  "data_start_adjustment": 0,
+  "successful_ldpc_blocks": 0,
+  "total_ldpc_blocks": 175,
+  "ldpc_fingerprint": "270111995b23bc1d540f4f1bdbaf418aa3538d376cf0826bb5cdd67603c76f2d",
+  "pilot_fingerprint": "989e110a354ab06cdbc1813c57182e0a1553e459ed885eda792c997cc72146bf",
+  "note": "The JOSS-F header supplies both payload offset and payload length. Without a recoverable header, the exact payload boundary is not uniquely determined; this file preserves every LDPC-decoded byte, including header and post-payload padding."
+}
