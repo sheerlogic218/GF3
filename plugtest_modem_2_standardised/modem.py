@@ -29,7 +29,14 @@ class ModemConfig:
     chirp_start_hz: float = 750.0
     chirp_stop_hz: float = 18_000.0
     chirp_count: int = 10
-    chirp_amplitude: float = 0.55
+    chirp_amplitude: float = 0.20
+
+    # Official Group-1 Golay pilot generator referenced by JOSS-F.
+    golay_order: int = 12
+    golay_gap: int = 2_048
+    golay_repeats: int = 4
+    golay_seed: tuple[int, int] = (1, 1)
+    golay_amplitude: float = 0.20
 
     # Golay pilot and OFDM
     fft_length: int = 4_096
@@ -57,10 +64,12 @@ class ModemConfig:
     leading_silence: int = 4_800
     trailing_silence: int = 4_800
     ofdm_scale: float = 12.0
-    output_peak: float = 0.92
+    output_peak: float = 0.80
+    padding_seed: int = 0x4A4F5353
 
     # Receiver-side tuning only.
     sync_refine_radius: int = 512
+    data_start_refine_radius: int = 384
     golay_regularisation: float = 1e-4
     equaliser_regularisation: float = 2e-3
     pilot_update_weight: float = 0.75
@@ -91,12 +100,18 @@ class ModemConfig:
         return self.chirp_count * self.chirp_length
 
     @property
+    def golay_block_length(self) -> int:
+        # One official block is [A, gap, B, gap].
+        return 2 * self.fft_length + 2 * self.golay_gap
+
+    @property
     def golay_section_length(self) -> int:
-        return 2 * self.fft_length + self.cyclic_prefix
+        # Official golay_pilot.py: [prefix gap] + 4*[A, gap, B, gap].
+        return self.golay_gap + self.golay_repeats * self.golay_block_length
 
     @property
     def preamble_length(self) -> int:
-        # 10*4096 + 4096 + 2048 + 4096 = 51200 samples.
+        # 10*4096 chirps + 51200-sample official Golay section = 92160.
         return self.chirp_train_length + self.golay_section_length
 
 
@@ -226,17 +241,12 @@ class PacketCodec:
         if total is None:
             raise ValueError("not enough decoded bytes for the JOSS-F header")
         if len(data) < total:
-            print(f"decoded {len(data)} bytes, but the header requests {total}")
-            # raise ValueError(f"decoded {len(data)} bytes, but the header requests {total}")
+            raise ValueError(f"decoded {len(data)} bytes, but the header requests {total}")
         header_length = struct.unpack(">H", data[:2])[0]
-        print(header_length)
         file_size = struct.unpack(">I", data[2:6])[0]
-        print(file_size)
-        file_name = data[6:header_length].decode("utf-8", errors="strict")
-        print(file_name)
-        # filename = data[6:header_length].decode("utf-8", errors="ignore")
+        filename = data[6:header_length].decode("utf-8", errors="strict")
         payload = data[header_length:total]
-        return DecodedPacket(file_name, file_size, payload, header_length)
+        return DecodedPacket(filename, file_size, payload, header_length)
 
 # -----------------------------------------------------------------------------
 # pilot_data.py
@@ -249,50 +259,75 @@ PILOT_BITS_HEX = "05fece0d5f219b5937c6513689da58b463ee58afba184f9788f4ec03d78a05
 # pilots.py
 # -----------------------------------------------------------------------------
 class LinearChirp:
+    """Gold-reference JOSS-F linear chirp used by the interoperable groups.
+
+    The final sample reaches 18 kHz and the chirp starts at cosine phase.
+    """
+
     def __init__(self, config: ModemConfig = CONFIG):
         self.config = config
 
     def samples(self) -> NDArray[np.float64]:
         c = self.config
-        n = np.arange(c.chirp_length, dtype=float)
-        t = n / c.sample_rate
-        duration = c.chirp_length / c.sample_rate
+        t = np.arange(c.chirp_length, dtype=float) / c.sample_rate
+        duration = (c.chirp_length - 1) / c.sample_rate
         rate = (c.chirp_stop_hz - c.chirp_start_hz) / duration
         phase = 2.0 * np.pi * (c.chirp_start_hz * t + 0.5 * rate * t * t)
-        # The final vote rejected chirp windowing, so no fade is applied here.
-        return c.chirp_amplitude * np.sin(phase)
+        return c.chirp_amplitude * np.cos(phase)
 
     def train(self) -> NDArray[np.float64]:
         return np.tile(self.samples(), self.config.chirp_count)
 
 
 class GolayPilot:
-    """Length-4096 Golay pair seeded with (1,1).
+    """Official Group-1 JOSS-F Golay pilot, reproduced exactly.
 
-    JOSS-F fixes the total pre-data position at 51,200 samples but does not state
-    where the single 2,048-sample 'gap' lies. This implementation uses the most
-    literal reading: A, then a zero gap, then B. The layout is isolated here so
-    it can be changed in one place if Group 1's reference file differs.
+    Layout after the ten chirps:
+        [2048 zeros] + 4 * [A, 2048 zeros, B, 2048 zeros]
+
+    This contains eight Golay pulses and is exactly 51,200 samples long.
     """
 
     def __init__(self, config: ModemConfig = CONFIG):
         self.config = config
-        self.a, self.b = self._generate(config.fft_length)
+        expected_length = 1 << config.golay_order
+        if config.fft_length != expected_length:
+            raise ValueError(
+                f"Golay order {config.golay_order} requires length {expected_length}, "
+                f"not {config.fft_length}"
+            )
+        self.a, self.b = self._generate(config.golay_order, config.golay_seed)
 
     @staticmethod
-    def _generate(length: int) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-        if length <= 0 or length & (length - 1):
-            raise ValueError("Golay length must be a positive power of two")
-        a = np.array([1.0])
-        b = np.array([1.0])
-        while len(a) < length:
+    def _generate(
+        order: int,
+        seed: tuple[int, int] = (1, 1),
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        a = np.array([seed[0]], dtype=float)
+        b = np.array([seed[1]], dtype=float)
+        for _ in range(order):
             a, b = np.concatenate([a, b]), np.concatenate([a, -b])
         return a, b
 
+    @property
+    def pulse_starts(self) -> list[tuple[int, int]]:
+        """Return (A start, B start) pairs relative to the Golay section."""
+        c = self.config
+        starts: list[tuple[int, int]] = []
+        for repeat in range(c.golay_repeats):
+            a_start = c.golay_gap + repeat * c.golay_block_length
+            b_start = a_start + c.fft_length + c.golay_gap
+            starts.append((a_start, b_start))
+        return starts
+
     def waveform(self) -> NDArray[np.float64]:
         c = self.config
-        gap = np.zeros(c.cyclic_prefix, dtype=float)
-        return c.chirp_amplitude * np.concatenate([self.a, gap, self.b])
+        gap = np.zeros(c.golay_gap, dtype=float)
+        block = np.concatenate([self.a, gap, self.b, gap])
+        signal = np.concatenate([gap, np.tile(block, c.golay_repeats)])
+        if len(signal) != c.golay_section_length:
+            raise RuntimeError("official Golay pilot must contain 51,200 samples")
+        return c.golay_amplitude * signal
 
 
 class KnownOFDMPilot:
@@ -310,7 +345,8 @@ class KnownOFDMPilot:
         self.bits = np.unpackbits(np.frombuffer(packed, dtype=np.uint8)).astype(np.uint8)
         if len(self.bits) != 4096:
             raise RuntimeError("Appendix-A pilot must contain 4096 bits")
-        self.symbols = QPSK.map(self.bits)
+        n_bins = len(self.config.data_bins)        # 854
+        self.symbols = QPSK.map(self.bits[:n_bins * 2])  # first 1708 bits only
         self.frequency = self._frequency_vector()
         self.time = np.fft.irfft(self.frequency, n=config.fft_length) * config.ofdm_scale
         # Use the actually realisable spectrum, including the real Nyquist bin.
@@ -318,7 +354,7 @@ class KnownOFDMPilot:
 
     def _frequency_vector(self) -> NDArray[np.complex128]:
         spectrum = np.zeros(self.config.fft_length // 2 + 1, dtype=np.complex128)
-        spectrum[1:] = self.symbols
+        spectrum[self.config.data_bins] = self.symbols   # data bins only, all else zero
         return spectrum
 
     def waveform(self) -> NDArray[np.float64]:
@@ -335,7 +371,7 @@ class Preamble:
     def waveform(self) -> NDArray[np.float64]:
         out = np.concatenate([self.chirp.train(), self.golay.waveform()])
         if len(out) != self.config.preamble_length:
-            raise RuntimeError("JOSS-F preamble must end at sample 51,200")
+            raise RuntimeError("JOSS-F chirp-plus-Golay preamble must contain 92,160 samples")
         return out
 
 # -----------------------------------------------------------------------------
@@ -651,11 +687,16 @@ def read_wav(path: str | Path, config: ModemConfig = CONFIG) -> NDArray[np.float
         raise ValueError(f"expected a {config.sample_rate} Hz WAV, received {sample_rate} Hz")
     original_dtype = signal.dtype
     signal = signal.astype(np.float64)
-    if signal.ndim == 2:
-        signal = np.mean(signal, axis=1)
     if np.issubdtype(original_dtype, np.integer):
         scale = max(abs(np.iinfo(original_dtype).min), np.iinfo(original_dtype).max)
         signal /= float(scale)
+    if signal.ndim == 2:
+        # Do not average microphone-array channels: phase differences can cause
+        # comb cancellation. Select the channel with the largest robust AC level.
+        centred = signal - np.median(signal, axis=0, keepdims=True)
+        levels = np.percentile(np.abs(centred), 95, axis=0)
+        signal = signal[:, int(np.argmax(levels))]
+    signal = signal - float(np.median(signal))
     return signal
 
 
