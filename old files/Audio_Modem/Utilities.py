@@ -1,4 +1,4 @@
-import zlib
+import struct
 
 import numpy as np
 import numpy.typing as npt
@@ -13,36 +13,36 @@ def bits_to_bytes(data_bits: npt.NDArray[np.uint8]) -> bytes:
 
 
 class Header:
-    def __init__(
-        self,
-        header_repetition: int = 5,
-        version: int = 1,
-    ):
-        self.repetitions = header_repetition
-        self.version = version.to_bytes(1)
+    @staticmethod
+    def form_header(payload_bytes: bytes, filename: str) -> npt.NDArray[np.uint8]:
+        """Forms the header according to JOSS-F Clause 8.0."""
+        # C
+        c_bytes = filename.encode("utf-8")
+        # A
+        header_length = 2 + 4 + len(c_bytes)
+        # B
+        data_length = len(payload_bytes)
+        # A+B+C
+        header_bytes = struct.pack(">HI", header_length, data_length) + c_bytes
 
-    def form_header(self, payload_bytes: bytes) -> npt.NDArray[np.uint8]:
-        ## Change to spec
-        # magic 2 bytes | version 1 byte | payload length 2 bytes | crc32 4 bytes
-        magic_bytes = 0xBEEF.to_bytes(2)  # idk why this is here
+        return bytes_to_bits(header_bytes)
 
-        length = len(payload_bytes).to_bytes(2)
-        crc = zlib.crc32(payload_bytes).to_bytes(4)
+    @staticmethod
+    def decode_header(bits: npt.NDArray[np.uint8]) -> tuple[int, int, str]:
+        """Decodes the header bits, returning (header_length, data_length, filename)."""
+        header_bytes = bits_to_bytes(bits)
+        if len(header_bytes) < 6:
+            raise ValueError("Insufficient bytes to parse header fields A and B.")
 
-        return bytes_to_bits(magic_bytes + self.version + length + crc)
+        # A, B
+        header_length, data_length = struct.unpack(">HI", header_bytes[0:6])
 
-    def make_header(self, payload_bytes: bytes) -> npt.NDArray[np.uint8]:
-        """Returns a header with every bit repeated N times."""
-        return np.repeat(self.form_header(payload_bytes), self.repetitions)
+        if len(header_bytes) < header_length:
+            raise ValueError(
+                f"Expected {header_length} bytes for header, but got {len(header_bytes)}."
+            )
 
-    def decode_header(self, bits: npt.NDArray[np.uint8]) -> tuple[int, int, int, int]:
-        """Decodes header bits into a tuple, undoing bit repetitions."""
-        header_bits = bits[:: self.repetitions]
-        header_bytes = bits_to_bytes(header_bits)
+        c_bytes = header_bytes[6:header_length]
+        filename = c_bytes.decode("utf-8")
 
-        magic = int.from_bytes(header_bytes[0:2])
-        version = int.from_bytes(header_bytes[2:3])
-        length = int.from_bytes(header_bytes[3:5])
-        crc = int.from_bytes(header_bytes[5:9])
-
-        return magic, version, length, crc
+        return header_length, data_length, filename

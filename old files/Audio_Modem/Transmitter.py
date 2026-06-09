@@ -2,148 +2,189 @@ from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
+from scipy.io import wavfile
 
+from Audio_Modem.Appendix_A import APPENDIX_A_DATA
 from Audio_Modem.Modulator import Modulator
 from Audio_Modem.Utilities import bytes_to_bits, bits_to_bytes, Header
-
-accepted_chirp_types = Literal[
-    "linear",
-    "quadratic",
-    "exponential",
-    "logarithmic",
-]
+from Audio_Modem.LDPC_Wrapper import LdpcWrapper, StandardInterleaver
 
 
 class Chirp:
     def __init__(
         self,
-        duration: float = 1.0,
-        amplitude: float = 0.6,
-        fade_duration: float = 0.02,
-        repeats: int = 5,
-        chirp_type: accepted_chirp_types = "linear",
-        f0: int = 100,
-        f1: int = 5000,
+        duration: float = 4096 / 48000,
+        repeats: int = 10,
+        f0: int = 750,
+        f1: int = 18000,
+        amplitude: float = 0.8,
     ):
-        if f0 <= 0 or f1 <= 0:
-            raise ValueError("f0,f1 must be > 0")
+        self.duration = duration
+        self.repeats = repeats
+        self.f0 = f0
+        self.f1 = f1
+        self.amplitude = amplitude
+        self.sampling_freq = 48000
 
-        self.duration: float = duration
-        self.amplitude: float = amplitude
-        self.fade_duration: float = fade_duration
-        self.repeats: int = repeats
-        self.type: accepted_chirp_types = chirp_type
-        self.f0: int = f0
-        self.f1: int = f1
-        self.sampling_freq: int = 48000
-
-    def form_chirp(self) -> npt.NDArray[float]:
+    def make_chirp(self) -> npt.NDArray[np.float64]:
         t = np.linspace(
             0,
             self.duration,
             int(self.duration * self.sampling_freq),
             endpoint=False,
         )
-        match self.type:
-            case "linear":
-                k = (self.f1 - self.f0) / self.duration
-                return 2 * np.pi * (self.f0 * t + 0.5 * k * t**2)
-            case "quadratic":
-                k = (self.f1 - self.f0) / self.duration**2
-                return 2 * np.pi * (self.f0 * t + (k / 3) * t**3)
-            case "exponential" | "logarithmic":
-                ratio = self.f1 / self.f0
-                return (
-                    2
-                    * np.pi
-                    * self.f0
-                    * self.duration
-                    / np.log(ratio)
-                    * (ratio ** (t / self.duration) - 1)
-                )
-            case "":
-                raise ValueError("Unknown chirp type")
-
-    def make_chirp(self):
-        phase = self.form_chirp()
-
-        fade_len = min(int(self.fade_duration * self.sampling_freq), len(phase) // 2)
-        fade = np.ones_like(phase)
-        fade[:fade_len] = np.linspace(0, 1, fade_len)
-        fade[-fade_len:] = np.linspace(1, 0, fade_len)
-
-        chirp_signal = self.amplitude * np.sin(phase) * fade
+        k = (self.f1 - self.f0) / self.duration
+        phase = 2 * np.pi * (self.f0 * t + 0.5 * k * t**2)
+        chirp_signal = self.amplitude * np.sin(phase)
         return np.tile(chirp_signal, self.repeats)
 
 
+class Golay:
+    def __init__(self, order: int = 12, cp_length: int = 2048, amplitude: float = 0.8):
+        self.order = order
+        self.cp_length = cp_length
+        self.amplitude = amplitude
+
+    def get_pilot_symbol(self) -> npt.NDArray[np.float64]:
+        a = np.array([1.0])
+        b = np.array([1.0])
+
+        for _ in range(self.order):
+            a_next = np.concatenate((a, b))
+            b_next = np.concatenate((a, -b))
+            a, b = a_next, b_next
+
+        # A + gap + B
+        gap = np.zeros(self.cp_length, dtype=np.float64)
+        return self.amplitude * np.concatenate((a, gap, b))
+
+
 class OFDM:
+    """Generates the Clause 4.0 OFDM Signal"""
+
     def __init__(
         self,
         sampling_freq: int = 48000,
-        subcarriers: int = 1024,
-        prefix_length: int = 256,
-        min_freq: int = 800,
-        max_freq: int = 10000,
-        pilot_spacing: int = 1,
+        subcarriers: int = 4096,
+        prefix_length: int = 2048,
+        min_freq: int = 2000,
+        max_freq: int = 12000,
     ):
-        self.sampling_freq: int = sampling_freq
-        self.subcarriers: int = subcarriers
-        self.prefix_length: int = prefix_length
-        self.min_freq: int = min_freq
-        self.max_freq: int = max_freq
-        self.bins: npt.NDArray[int] = self.get_ofdm_bins()
-        self.pilot_bins = self.bins[:: pilot_spacing + 1]
-        self.data_bins = np.array(list(set(self.bins) - set(self.pilot_bins)))
+        self.sampling_freq = sampling_freq
+        self.subcarriers = subcarriers
+        self.prefix_length = prefix_length
+        self.min_freq = min_freq
+        self.max_freq = max_freq
 
-    def get_ofdm_bins(self):
-        bin_res = self.sampling_freq / self.subcarriers
-        start_bin = int(np.ceil(self.min_freq / bin_res))
-        end_bin = min(
-            int(np.floor(self.max_freq / bin_res)),
-            (self.subcarriers // 2) - 1,
-        )
-        return np.arange(start_bin, end_bin + 1).astype(int)
+        # Calculate strict bins 171->1024
+        freqs = np.fft.rfftfreq(self.subcarriers, d=1 / self.sampling_freq)
+        self.data_bins = np.where((freqs > self.min_freq) & (freqs <= self.max_freq))[0]
 
-    def to_OFDM_symbol(self, bin_values):
+    def to_OFDM_symbol(
+        self, qpsk_symbols: npt.NDArray[np.complex128]
+    ) -> npt.NDArray[np.float64]:
+        """Maps 854 active symbols to the strict data bins."""
         X = np.zeros(self.subcarriers // 2 + 1, dtype=complex)
-
-        keys = np.fromiter(bin_values.keys(), dtype=int)
-        vals = np.fromiter(bin_values.values(), dtype=complex)
-        X[keys] = vals
+        X[self.data_bins[: len(qpsk_symbols)]] = qpsk_symbols
         x = np.fft.irfft(X)
         return np.concatenate([x[-self.prefix_length :], x])
 
-    def full_pilot_symbol(self):
-        return self.to_OFDM_symbol({k: 1 + 0j for k in self.bins})
-
-    def data_to_symbols(self, data):
-        pass
-
-
-ofdm = OFDM()
-
-
-def plot_stuff(data):
-    # plot with matplotlib
-    import matplotlib.pyplot as plt
-
-    plt.plot(data)
-    plt.show()
+    def to_OFDM_pilot_symbol(
+        self, qpsk_symbols: npt.NDArray[np.complex128]
+    ) -> npt.NDArray[np.float64]:
+        """Maps exactly 2048 Pilot symbols starting from bin 1 (Appendix A style)."""
+        X = np.zeros(self.subcarriers // 2 + 1, dtype=complex)
+        X[1 : len(qpsk_symbols) + 1] = qpsk_symbols
+        x = np.fft.irfft(X)
+        return np.concatenate([x[-self.prefix_length :], x])
 
 
-plot_stuff(ofdm.to_OFDM_symbol({k: 1 + 0j for k in ofdm.bins}))
+class AudioTransmitter:
+    def __init__(self):
+        # Instantiate DSP components
+        self.chirp = Chirp()
+        self.golay = Golay()
+        self.ofdm = OFDM()
+        self.modulator = Modulator()
+        self.ldpc = LdpcWrapper(z=61)
+        self.interleaver = StandardInterleaver()
+        self.pilot_qpsk = self.modulator.to_qpsk(APPENDIX_A_DATA)
 
-header = Header()
-modulator = Modulator()
+    def build_frame(
+        self, payload_bytes: bytes, filename: str
+    ) -> npt.NDArray[np.float64]:
+        print(f"Building Transmission Frame for: {filename}")
 
-chirp = Chirp(chirp_type="linear")
-chirp.make_chirp()
+        # Generate Preamble
+        chirp_waveform = self.chirp.make_chirp()
+        golay_waveform = self.golay.get_pilot_symbol()
 
-MESSAGE: bytes = b"Hello"
-message_bits = bytes_to_bits(MESSAGE)
+        preamble_block = np.concatenate(
+            [
+                chirp_waveform,
+                golay_waveform,
+            ]
+        )
 
-symbols = modulator.to_qpsk(message_bits)
-decoded = bits_to_bytes(modulator.from_qpsk(symbols))
+        # Generate Header and Merge Data Bits
+        header_bits = Header.form_header(payload_bytes, filename)
+        payload_bits = bytes_to_bits(payload_bytes)
+        full_data_bits = np.concatenate([header_bits, payload_bits])
+
+        # LDPC
+        coded_blocks = self.ldpc.encode_blocks(full_data_bits)
+
+        # Process Groups & Map OFDM Symbols
+        num_groups = len(coded_blocks) // 35
+        data_waveform = []
+        block_counter = 1
+
+        for i in range(num_groups):
+            chunk = coded_blocks[i * 35 : (i + 1) * 35]
+            qpsk_symbols_2d = self.interleaver.interleave(chunk)
+
+            for qpsk_row in qpsk_symbols_2d:
+                if block_counter % 20 == 0:
+                    pilot_time = self.ofdm.to_OFDM_pilot_symbol(self.pilot_qpsk)
+                    data_waveform.append(pilot_time)
+                    block_counter += 1
+
+                # Modulate Data Symbol
+                data_time = self.ofdm.to_OFDM_symbol(qpsk_row)
+                data_waveform.append(data_time)
+                block_counter += 1
+
+        silence = np.zeros(4800)
+        final_signal = np.concatenate(
+            [silence, preamble_block, *data_waveform, silence]
+        )
+
+        # volume normalisation
+        final_signal = final_signal / (np.max(np.abs(final_signal)) + 1e-12) * 0.92
+        return final_signal
 
 
-print(decoded)
+if __name__ == "__main__":
+    import os
+
+    # Example Usage
+    transmitter = AudioTransmitter()
+
+    test_file = "payload.txt"
+    out_file = "tx.wav"
+
+    if not os.path.exists(test_file):
+        with open(test_file, "w") as f:
+            f.write(
+                "CUGFKGKGAIGSDUBSNDHAWEUDAKSJUDYTGVBNJKIUYTGHBNMJKIUYHGTBNJMKIUYHGTBNMJKIUYHGBNJuyhtgvbnjuyTGBNJUYHGtbnjmkiuyhgBNJMKUYHGb"
+                * 20
+            )
+
+    with open(test_file, "rb") as f:
+        file_data = f.read()
+
+    signal = transmitter.build_frame(file_data, test_file)
+
+    # Save Output
+    wavfile.write(out_file, 48000, (signal * 32767).astype(np.int16))
+    print(f"Success! Output saved to {out_file} ({len(signal) / 48000:.2f} seconds)")
