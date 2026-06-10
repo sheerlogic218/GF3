@@ -1,0 +1,4 @@
+numpy
+scipy
+matplotlib
+sounddevice  # only required for live recording through modem.record_wav
