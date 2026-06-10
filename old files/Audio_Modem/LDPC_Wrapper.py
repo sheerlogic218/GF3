@@ -74,7 +74,7 @@ class LdpcWrapper:
         llr = np.asarray(llr, dtype=np.double)
         app, iterations = self.core.decode(llr, dectype="sumprod2")
         info_bits = (app < 0.0).astype(np.uint8)[: self.k]
-        success = iterations < 50
+        success = iterations < 350
         return info_bits, iterations, success
 
 
