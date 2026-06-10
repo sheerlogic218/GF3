@@ -3907,12 +3907,28 @@ class code:
         ch = np.asarray(ch, dtype=np.double)
         app = np.zeros(Nv, dtype=np.double)
 
-        # Create pointers
+        # --- FIX: Match Python memory size to Windows C compiler memory size ---
+        # Determine if C 'long' is 32-bit (Windows) or 64-bit (Linux/Mac)
+        long_dtype = np.int64 if ct.sizeof(ct.c_long) == 8 else np.int32
+
+        # Force arrays to be contiguous in memory with the correct byte size
+        safe_vdeg = np.ascontiguousarray(self.vdeg, dtype=long_dtype)
+        safe_cdeg = np.ascontiguousarray(self.cdeg, dtype=long_dtype)
+        safe_intrlv = np.ascontiguousarray(self.intrlv, dtype=long_dtype)
+
+        # Create pointers from the safe arrays
         app_p = app.ctypes.data_as(ct.POINTER(ct.c_double))
         ch_p = ch.ctypes.data_as(ct.POINTER(ct.c_double))
-        vdeg_p = self.vdeg.ctypes.data_as(ct.POINTER(ct.c_long))
-        cdeg_p = self.cdeg.ctypes.data_as(ct.POINTER(ct.c_long))
-        intrlv_p = self.intrlv.ctypes.data_as(ct.POINTER(ct.c_long))
+        vdeg_p = safe_vdeg.ctypes.data_as(ct.POINTER(ct.c_long))
+        cdeg_p = safe_cdeg.ctypes.data_as(ct.POINTER(ct.c_long))
+        intrlv_p = safe_intrlv.ctypes.data_as(ct.POINTER(ct.c_long))
+
+        # # Create pointers
+        # app_p = app.ctypes.data_as(ct.POINTER(ct.c_double))
+        # ch_p = ch.ctypes.data_as(ct.POINTER(ct.c_double))
+        # vdeg_p = self.vdeg.ctypes.data_as(ct.POINTER(ct.c_long))
+        # cdeg_p = self.cdeg.ctypes.data_as(ct.POINTER(ct.c_long))
+        # intrlv_p = self.intrlv.ctypes.data_as(ct.POINTER(ct.c_long))
 
         # Call C function for the sum product algorithm
         if dectype == "sumprod":

@@ -3,6 +3,7 @@ from typing import Literal
 import numpy as np
 import numpy.typing as npt
 from scipy.io import wavfile
+from scipy.signal import chirp
 
 from Audio_Modem.Appendix_A import APPENDIX_A_DATA
 from Audio_Modem.Modulator import Modulator
@@ -31,12 +32,24 @@ class Chirp:
             0,
             self.duration,
             int(self.duration * self.sampling_freq),
-            endpoint=False,
         )
-        k = (self.f1 - self.f0) / self.duration
-        phase = 2 * np.pi * (self.f0 * t + 0.5 * k * t**2)
-        chirp_signal = self.amplitude * np.sin(phase)
-        return np.tile(chirp_signal, self.repeats)
+        single_chirp = chirp(
+            t,
+            f0=self.f0,
+            f1=self.f1,
+            t1=self.duration,
+            method="linear",
+        )
+        # t = np.linspace(
+        #     0,
+        #     self.duration,
+        #     int(self.duration * self.sampling_freq),
+        #     endpoint=False,
+        # )
+        # k = (self.f1 - self.f0) / self.duration
+        # phase = 2 * np.pi * (self.f0 * t + 0.5 * k * t**2)
+        # chirp_signal = self.amplitude * np.sin(phase)
+        return np.tile(single_chirp, self.repeats)
 
 
 class Golay:
@@ -45,18 +58,23 @@ class Golay:
         self.cp_length = cp_length
         self.amplitude = amplitude
 
-    def get_pilot_symbol(self) -> npt.NDArray[np.float64]:
+    def generate_golay_pairs(self):
         a = np.array([1.0])
         b = np.array([1.0])
-
         for _ in range(self.order):
             a_next = np.concatenate((a, b))
             b_next = np.concatenate((a, -b))
             a, b = a_next, b_next
 
-        # A + gap + B
+        return a, b
+
+    def get_pilot_symbol(self) -> npt.NDArray[np.float64]:
+        a, b = self.generate_golay_pairs()
+
         gap = np.zeros(self.cp_length, dtype=np.float64)
-        return self.amplitude * np.concatenate((a, gap, b))
+        full_a_b = np.concatenate((gap, a, gap, b))
+        full_golay_pairs = np.concatenate((np.tile(full_a_b, 4), gap))
+        return full_golay_pairs
 
 
 class OFDM:
@@ -148,19 +166,21 @@ class AudioTransmitter:
                     pilot_time = self.ofdm.to_OFDM_pilot_symbol(self.pilot_qpsk)
                     data_waveform.append(pilot_time)
                     block_counter += 1
+                else:
+                    # Modulate Data Symbol
+                    data_time = self.ofdm.to_OFDM_symbol(qpsk_row)
+                    data_waveform.append(data_time)
+                    block_counter += 1
 
-                # Modulate Data Symbol
-                data_time = self.ofdm.to_OFDM_symbol(qpsk_row)
-                data_waveform.append(data_time)
-                block_counter += 1
-
+        data_waveform = np.array(data_waveform)
+        data_waveform = data_waveform / (np.max(np.abs(data_waveform)) + 1e-12) * 0.92
         silence = np.zeros(4800)
         final_signal = np.concatenate(
             [silence, preamble_block, *data_waveform, silence]
         )
 
         # volume normalisation
-        final_signal = final_signal / (np.max(np.abs(final_signal)) + 1e-12) * 0.92
+        # final_signal = final_signal / (np.max(np.abs(final_signal)) + 1e-12) * 0.92
         return final_signal
 
 

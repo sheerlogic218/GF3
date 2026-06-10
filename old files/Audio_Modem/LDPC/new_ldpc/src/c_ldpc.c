@@ -28,8 +28,11 @@
  * Jossy, September 2018                                                *
  *                                                                      *
  ********************************************************************** */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int sumprod(double *ch, long *vdeg, long *cdeg, long *intrlv,
+__declspec(dllexport) int sumprod(double *ch, long *vdeg, long *cdeg, long *intrlv,
 	    int Nv, int Nc, int Nmsg, double *app)
 {
   double *msg;
@@ -135,7 +138,7 @@ int sumprod(double *ch, long *vdeg, long *cdeg, long *intrlv,
 double Lxor(double L1, double L2, int correction_flag); // LLR of XOR
 double Lxfb(double *L, long dc, int correction_flag); // extrinsic LLR
 
-int sumprod2(double *ch, long *vdeg, long *cdeg, long *intrlv,
+__declspec(dllexport) int sumprod2(double *ch, long *vdeg, long *cdeg, long *intrlv,
 	     int Nv, int Nc, int Nmsg, double *app)
 {
   double *msg;
@@ -336,7 +339,7 @@ double Lxfb(double *L, long dc, int corr_flag)
  *                                                                      *
  ********************************************************************** */
 
-int minsum(double *ch, long *vdeg, long *cdeg, long *intrlv,
+__declspec(dllexport) int minsum(double *ch, long *vdeg, long *cdeg, long *intrlv,
 	   int Nv, int Nc, int Nmsg, double *app, double correction_factor)
 {
   double *msg;
@@ -379,6 +382,10 @@ int minsum(double *ch, long *vdeg, long *cdeg, long *intrlv,
 
   return(itcount); 
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 /* **********************************************************************
  *                                                                      *
