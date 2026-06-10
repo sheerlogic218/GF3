@@ -1,0 +1,37 @@
+TITLE: THE CONSTALLATION’S TWIN: A TRAGEDY OF ONE BIT PER SYMBOL
+DRAMATIS PERSONAE:
+
+CARRIER (The Wave): A noble sinusoidal frequency, bound to travel the treacherous Channel.
+BIT ONE: A high-born Lord, representing the Positive Phase (0∘).
+BIT ZERO: A low-born Lord, representing the Antipodal Phase (180∘).
+THE TRANSMITTER: An alchemist and architect of signals.
+THE RECEIVER: A blind seer at the far end of the Kingdom, searching for Truth amid Noise.
+NOISE: A chaotic, villainous knave, seeking to corrupt the message.
+ACT I, SCENE I. The Lab of Transmitter.
+[Enter TRANSMITTER, holding a scroll of binary data, and CARRIER, vibrating with pure sinusoidal energy.]
+TRANSMITTER Hark, noble Carrier! The hour is come To bear our Kingdom’s thoughts across the void. But look, thy form is smooth, a flawless wave, Unyielding in thy steady, constant march. How shall the distant Receiver discern The difference ’twixt a Zero and a One, If thou dost sing but one unchanging tune?
+CARRIER Command me, Master! I am but thy breath. Shall I grow tall in Amplitude, or swift In Frequency to mimic mortal speech?
+TRANSMITTER Nay, Amplitude is weak, a fragile prey To the foul tempest of the local Noise. And Frequency doth claim too wide a realm Of sacred Bandwidth! We shall choose a path More elegant, more stark, more binary. Thou shalt not change thy height, nor speed thy pace, But in thy Phase the secret truth shall dwell! Go forth! When Lord One bids thee leave the gate, Begin thy dance at zero-degree state!
+[Enter BIT ONE]
+BIT ONE I am the One! Righteous, upright, and true! Let the wave flow as it hath e'er begun, A cosine pure, ascending to the sky!
+TRANSMITTER But soft! Here comes the shadow to the light.
+[Enter BIT ZERO]
+BIT ZERO And I the Zero! Downward must I fly! When I command, good Carrier, thou must flip! Invert thyself! A hundred-eighty degrees! Let thy peak turn to valley, swift and sharp! Where once thou rose, now thou shalt surely fall!
+CARRIER By heaven, I see the grand design! I shift! Two states alone, antipodal and stark, Like day and night, we mark the sacred spark!
+ACT II, SCENE I. The Desert of Channel.
+[Enter CARRIER, mid-flight, shifting violently by 180 degrees at every bit interval. Enter NOISE, wearing a cloak of random static, throwing rocks and dust.]
+NOISE Ha! Dance, sweet signal, dance upon the wire! But I shall mar thy phase with random ire! I’ll bend thy peaks! I’ll push thy valleys high! Let’s see if the Receiver can descry A One from Zero when my dust is thrown! White Gaussian chaos shall be mine alone!
+CARRIER [Struggling against the wind] Though he doth buffet me with standard deviations, And seeks to blur my constellation points, I hold my phase! My power is concentrated! For BPSK is tough, though simple-bred, It takes a heavy blow to flip my head!
+ACT III, SCENE I. The Gates of Receiver.
+[Enter RECEIVER, holding a Local Oscillator, squinting into the distance. Enter CARRIER, battered and bruised by NOISE.]
+RECEIVER Who goes there? Is’t a phantom of the air, Or the true message from my distant lord? Come, Local Oscillator, mirror-twin, Mix with this incoming, exhausted guest! Let us multiply their fates and see What DC voltage shall delivered be!
+[RECEIVER embraces CARRIER, performing Coherent Demodulation.]
+RECEIVER Aha! The product yields a positive sign! The phase is aligned with our zero line! Speak, oracle of the decision boundary!
+THE DECISION BOUNDARY [Voices from offstage] If the voltage be greater than the threshold of naught, ’Tis a ONE that the noble Transmitter hath wrought!
+RECEIVER Thy mask is off, Lord One! I know thee well! [Bit One steps forward, vindicated]
+RECEIVER But stay! The next wave arrives... it plunges deep! The product turns negative! The threshold is crossed!
+THE DECISION BOUNDARY Below the zero line, the truth is found! A ZERO rises from the muddy ground! [Bit Zero steps forward]
+RECEIVER O, wondrous symmetry! One bit per pulse! Though slow compared to QAM's luxurious court, Where many bits do share a single phase, Thou, BPSK, art the bedrock of our days! Robust and fierce against the villain Noise, Thy simple binary is nature's poise!
+[The constellation diagram is revealed in the sky: two solitary dots, spaced perfectly apart across the origin, shining like twin stars.]
+CARRIER Thus is the message saved, the channel crossed, And not a single, precious bit is lost!
+[Exeunt omnes, to the rhythm of a steady clock cycle.]
